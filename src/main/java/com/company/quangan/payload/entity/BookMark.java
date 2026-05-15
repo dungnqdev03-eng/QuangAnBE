@@ -1,8 +1,10 @@
 package com.company.quangan.payload.entity;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.time.LocalDate;
 import java.util.Date;
 
 @Getter
@@ -18,7 +20,8 @@ public class BookMark {
     private int bookMarkId;
 
     @Column
-    private Date createdTime;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDate createdTime;
 
     @Column(columnDefinition = "nvarchar(max)")
     private String message;

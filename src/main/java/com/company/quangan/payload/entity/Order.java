@@ -1,10 +1,12 @@
 package com.company.quangan.payload.entity;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import com.company.quangan.payload.Enum.EOrderType;
 
+import java.time.LocalDate;
 import java.util.Date;
 
 @Getter
@@ -24,7 +26,8 @@ public class Order {
     private String oderCode;
 
     @Column
-    private Date orderDate;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDate orderDate;
 
     @Column(nullable = false, columnDefinition = "nvarchar(max)")
     private String orderName;

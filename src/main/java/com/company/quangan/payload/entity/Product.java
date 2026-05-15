@@ -1,8 +1,10 @@
 package com.company.quangan.payload.entity;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.time.LocalDate;
 import java.util.Collection;
 import java.util.Date;
 
@@ -22,7 +24,8 @@ public class Product {
     private String productName;
 
     @Column
-    private Date createdTime;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDate createdTime;
 
     @Column(nullable = false, columnDefinition = "nvarchar(max)")
     private String description;

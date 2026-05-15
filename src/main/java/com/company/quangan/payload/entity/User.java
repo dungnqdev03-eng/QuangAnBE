@@ -1,8 +1,10 @@
 package com.company.quangan.payload.entity;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.time.LocalDate;
 import java.util.Collection;
 import java.util.Date;
 
@@ -32,7 +34,8 @@ public class User {
     private String password;
 
     @Column
-    private Date dob;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDate dob;
 
     @Column
     private boolean status;
