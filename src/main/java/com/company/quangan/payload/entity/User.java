@@ -21,19 +21,19 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int userId;
 
-    @Column(unique = true)
+    @Column(unique = true, nullable = true)
     private String userName;
 
-    @Column(columnDefinition = "nvarchar(255)")
+    @Column(columnDefinition = "nvarchar(255)", nullable = true)
     private String address;
 
     @Column(columnDefinition = "nvarchar(255)")
     private String fullName;
 
-    @Column
+    @Column(nullable = true)
     private String password;
 
-    @Column
+    @Column(nullable = true)
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDate dob;
 

@@ -18,7 +18,7 @@ public class ProductImage {
     @Column(nullable = false)
     private String path;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "NVARCHAR(255)")
     private String productImageCode;
 
     @Column

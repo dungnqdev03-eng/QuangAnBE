@@ -17,7 +17,7 @@ public class PostCategory {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int postCategoryId;
 
-    @Column
+    @Column(columnDefinition = "NVARCHAR(255)")
     private String postCategoryName;
 
     @Column

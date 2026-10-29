@@ -17,7 +17,7 @@ public class ProductCategory {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int productCategoryId;
 
-    @Column
+    @Column(columnDefinition = "NVARCHAR(255)")
     private String productCategoryName;
 
     @Column
