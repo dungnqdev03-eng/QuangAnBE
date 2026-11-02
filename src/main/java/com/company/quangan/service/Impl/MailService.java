@@ -3,67 +3,104 @@ package com.company.quangan.service.Impl;
 import com.company.quangan.payload.Enum.EOrderType;
 import com.company.quangan.payload.dto.ContactRequest;
 import jakarta.mail.MessagingException;
-import jakarta.mail.internet.MimeMessage;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.JavaMailSenderImpl;
-import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.MediaType;
+import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.util.HtmlUtils;
 
-import java.time.LocalDate;
+import java.net.http.HttpClient;
+import java.time.Duration;
+import java.util.List;
+import java.util.Map;
 
 @Service
 public class MailService {
-    @Autowired
-    private JavaMailSender mailSender;
 
+    private static final String BREVO_URL = "https://api.brevo.com/v3/smtp/email";
     private static final String ADMIN_EMAIL = "chinh.quangantechnology@gmail.com";
+    private static final String SENDER_NAME = "Quang An Technology";
 
-    public void sendNewMail(String to, String subject, String body,String fullname) throws MessagingException {
-        MimeMessage message = mailSender.createMimeMessage();
-        MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+    // Lấy từ biến môi trường (Render -> Environment)
+    @Value("${BREVO_API_KEY}")
+    private String apiKey;
 
-        helper.setFrom("globietechgear@gmail.com");
-        helper.setTo(to);
-        helper.setSubject(subject);
-        helper.setText(body.replace("{recipient_email}", fullname), true); // Replace {recipient_email} with actual recipient email
+    // Email người gửi, phải là email đã được xác minh trong Brevo (mục Senders)
+    @Value("${MAIL_FROM}")
+    private String mailFrom;
 
-        mailSender.send(message);
+    private final RestClient client;
+
+    public MailService() {
+        HttpClient httpClient = HttpClient.newBuilder()
+                .connectTimeout(Duration.ofSeconds(5))
+                .build();
+        JdkClientHttpRequestFactory factory = new JdkClientHttpRequestFactory(httpClient);
+        factory.setReadTimeout(Duration.ofSeconds(10));
+        this.client = RestClient.builder().requestFactory(factory).build();
     }
 
+    public void sendNewMail(String to, String subject, String body, String fullname) throws MessagingException {
+        String html = body.replace("{recipient_email}", fullname);
 
-public void SendEmailOrderConfirmToCustomer(String to, String fullName, String productName,
-                                            int quantity, long unitPrice, EOrderType paymentMethod) throws MessagingException {
+        Map<String, Object> payload = Map.of(
+                "sender", Map.of("name", SENDER_NAME, "email", mailFrom),
+                "to", List.of(Map.of("email", to)),
+                "subject", subject,
+                "htmlContent", html
+        );
 
-    long total = unitPrice * quantity;
+        try {
+            client.post()
+                    .uri(BREVO_URL)
+                    .header("api-key", apiKey)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .accept(MediaType.APPLICATION_JSON)
+                    .body(payload)
+                    .retrieve()
+                    .toBodilessEntity();
+        } catch (RestClientResponseException e) {
+            throw new MessagingException(
+                    "Brevo trả về lỗi " + e.getStatusCode().value() + ": " + e.getResponseBodyAsString(), e);
+        } catch (RestClientException e) {
+            throw new MessagingException("Không gọi được Brevo: " + e.getMessage(), e);
+        }
+    }
 
-    String subject = "✅ Xác nhận đơn hàng: " + productName + " - Quang An Technology";
+    public void SendEmailOrderConfirmToCustomer(String to, String fullName, String productName,
+                                                int quantity, long unitPrice, EOrderType paymentMethod) throws MessagingException {
 
-    String body = "<html>" +
-            "<body>" +
-            "<h2 style=\"color: #0D6EFD;\">Cảm ơn bạn đã đặt hàng tại Quang An Technology!</h2>" +
-            "<p>Xin chào " + fullName + ",</p>" +
-            "<p>Chúng tôi đã nhận được đơn hàng của bạn. Dưới đây là thông tin chi tiết:</p>" +
+        long total = unitPrice * quantity;
 
-            "<p><b>*** Thông tin đơn hàng:</b></p>" +
-            "<p>&nbsp;&nbsp;&nbsp;. Sản phẩm: " + productName + "</p>" +
-            "<p>&nbsp;&nbsp;&nbsp;. Số lượng: " + quantity + "</p>" +
-            "<p>&nbsp;&nbsp;&nbsp;. Đơn giá: " + String.format("%,d", unitPrice) + " đ</p>" +
-            "<p>&nbsp;&nbsp;&nbsp;. Tổng cộng: <b style=\"color:#e65100;\">" + String.format("%,d", total) + " đ</b></p>" +
-            "<p>&nbsp;&nbsp;&nbsp;. Hình thức thanh toán: " + paymentMethod + "</p>" +
+        String subject = "✅ Xác nhận đơn hàng: " + productName + " - Quang An Technology";
 
-            "<p style=\"padding:10px; background:#e8f5e9; border-left:4px solid #2e7d32;\">" +
-            "📞 Nhân viên của chúng tôi sẽ sớm gọi điện xác nhận với bạn trước khi giao hàng." +
-            "</p>" +
+        String body = "<html>" +
+                "<body>" +
+                "<h2 style=\"color: #0D6EFD;\">Cảm ơn bạn đã đặt hàng tại Quang An Technology!</h2>" +
+                "<p>Xin chào " + fullName + ",</p>" +
+                "<p>Chúng tôi đã nhận được đơn hàng của bạn. Dưới đây là thông tin chi tiết:</p>" +
 
-            "<p>Nếu bạn có bất kỳ thắc mắc nào, vui lòng trả lời email này hoặc liên hệ hotline của chúng tôi.</p>" +
-            "<p>Trân trọng,<br/>Quang An Technology</p>" +
-            "</body>" +
-            "</html>";
+                "<p><b>*** Thông tin đơn hàng:</b></p>" +
+                "<p>&nbsp;&nbsp;&nbsp;. Sản phẩm: " + productName + "</p>" +
+                "<p>&nbsp;&nbsp;&nbsp;. Số lượng: " + quantity + "</p>" +
+                "<p>&nbsp;&nbsp;&nbsp;. Đơn giá: " + String.format("%,d", unitPrice) + " đ</p>" +
+                "<p>&nbsp;&nbsp;&nbsp;. Tổng cộng: <b style=\"color:#e65100;\">" + String.format("%,d", total) + " đ</b></p>" +
+                "<p>&nbsp;&nbsp;&nbsp;. Hình thức thanh toán: " + paymentMethod + "</p>" +
 
-    sendNewMail(to, subject, body, fullName);
-}
+                "<p style=\"padding:10px; background:#e8f5e9; border-left:4px solid #2e7d32;\">" +
+                "📞 Nhân viên của chúng tôi sẽ sớm gọi điện xác nhận với bạn trước khi giao hàng." +
+                "</p>" +
+
+                "<p>Nếu bạn có bất kỳ thắc mắc nào, vui lòng trả lời email này hoặc liên hệ hotline của chúng tôi.</p>" +
+                "<p>Trân trọng,<br/>Quang An Technology</p>" +
+                "</body>" +
+                "</html>";
+
+        sendNewMail(to, subject, body, fullName);
+    }
 
     public void SendEmailOrderNotification(String to, String fullName, String phone, String email,
                                            String address, String note, String productName,
@@ -102,7 +139,6 @@ public void SendEmailOrderConfirmToCustomer(String to, String fullName, String p
 
         sendNewMail(to, subject, body, fullName);
     }
-
 
     public void sendContactThankYouToCustomer(String to, String fullName) throws MessagingException {
 
