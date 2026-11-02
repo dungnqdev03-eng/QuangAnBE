@@ -1,5 +1,6 @@
 package com.company.quangan.controller;
 
+import com.company.quangan.payload.dto.ContactRequest;
 import com.company.quangan.payload.request.create.CreateProductCategoryRequest;
 import com.company.quangan.payload.request.create.CreateProductRequest;
 import com.company.quangan.payload.request.create.OrderRequest;
@@ -11,6 +12,7 @@ import com.company.quangan.service.Impl.MailService;
 import com.company.quangan.service.OrderService;
 import com.company.quangan.service.ProductService;
 import jakarta.mail.MessagingException;
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -20,6 +22,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("${api.version}/product")
@@ -34,6 +37,7 @@ public class ProductController {
 
     @Autowired
     OrderService orderService;
+
 
     @PostMapping("/create")
     public ResponseEntity<String> create(@RequestBody CreateProductRequest createProductRequest) {
@@ -166,5 +170,13 @@ public class ProductController {
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body("Đặt hàng thất bại: " + e.getMessage());
         }
+    }
+
+    @PostMapping("/contact")
+    public ResponseEntity<?> submit(@Valid @RequestBody ContactRequest req) {
+        productService.handleContact(req);
+        return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "Cảm ơn bạn đã liên hệ, chúng tôi sẽ phản hồi sớm nhất!"));
     }
 }

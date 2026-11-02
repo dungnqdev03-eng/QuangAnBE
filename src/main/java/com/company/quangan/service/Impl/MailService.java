@@ -1,6 +1,7 @@
 package com.company.quangan.service.Impl;
 
 import com.company.quangan.payload.Enum.EOrderType;
+import com.company.quangan.payload.dto.ContactRequest;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,6 +9,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
+import org.springframework.web.util.HtmlUtils;
 
 import java.time.LocalDate;
 
@@ -15,6 +17,8 @@ import java.time.LocalDate;
 public class MailService {
     @Autowired
     private JavaMailSender mailSender;
+
+    private static final String ADMIN_EMAIL = "chinh.quangantechnology@gmail.com";
 
     public void sendNewMail(String to, String subject, String body,String fullname) throws MessagingException {
         MimeMessage message = mailSender.createMimeMessage();
@@ -28,52 +32,6 @@ public class MailService {
         mailSender.send(message);
     }
 
-//    public void sendOTPtoActiveAccount(String to, String otp, String fullname) throws MessagingException {
-//        String subject = "OTP kích hoạt tài khoản - Globie";
-//        String body = "<html>" +
-//                "<body>" +
-//                "<h2 style=\"color: #0D6EFD;\">OTP kích hoạt tài khoản</h2>" +
-//                "<p>Xin chào " + fullname + ",</p>" +
-//                "<p>Chúng tôi đã nhận được yêu cầu kích hoạt tài khoản Globie của bạn liên kết với địa chỉ email này. Nếu bạn không yêu cầu thay đổi này, bạn có thể bỏ qua email này.</p>" +
-//                "<p>Để kích hoạt tài khoản của bạn, vui lòng sử dụng mã OTP sau:</p>" +
-//                "<h3 style=\"color: #0D6EFD;\">" + otp + "</h3>" +
-//                "<p>Mã OTP này sẽ hết hạn sau 15 phút.</p>" +
-//                "<p>Cảm ơn bạn đã đồng hành cùng Globie !</p>" +
-//                "<p>Trân trọng,<br/>Globie</p>" +
-//                "</body>" +
-//                "</html>";
-//        sendNewMail(to, subject, body, fullname);
-//    }
-//
-//    public void sendOTPtoChangePasswordAccount(String to, String otp, String fullname) throws MessagingException {
-//        String subject = "OTP để đặt lại mật khẩu - Globie";
-//        String body = "<html>" +
-//                "<body>" +
-//                "<h2 style=\"color: #0D6EFD;\">Mã OTP</h2>" +
-//                "<p>Xin chào " + fullname + ",</p>" +
-//                "<p>Chúng tôi đã nhận được yêu cầu đặt lại mật khẩu cho tài khoản của bạn. Sử dụng mã OTP dưới đây để đặt lại mật khẩu của bạn:</p>" +
-//                "<h3 style=\"color: #0D6EFD;\">" + otp + "</h3>" +
-//                "<p>Mã OTP này sẽ hết hạn sau 15 phút.</p>" +
-//                "<p>Trân trọng,<br/>Globie</p>" +
-//                "</body>" +
-//                "</html>";
-//        sendNewMail(to, subject, body, fullname);
-//    }
-
-//    public void SendEmailBannedStatusMember(String to, String fullname) throws MessagingException {
-//        String subject = "Cấm khỏi nền tảng - Globie";
-//        String body = "<html>" +
-//                "<body>" +
-//                "<h2 style=\"color: #0D6EFD;\">Cấm Người Dùng</h2>" +
-//                "<p>Xin chào " + fullname + ",</p>" +
-//                "<p>Sau khi chúng tôi nhận được nhiều đơn khiếu nại về các sản phẩm của bạn trên nền tảng của chúng tôi.</p>" +
-//                "<p>Chúng tôi rất tiếc phải thông báo với bạn rằng bạn đã bị cấm sử dụng nền tảng Globie.</p>" +
-//                "<p>Nếu bạn có bất kỳ phản hồi nào, vui lòng trả lời mail này!</p>" +
-//                "<p>Trân trọng,<br/>Globie</p>" +
-//                "</body>" +
-//                "</html>";
-//        sendNewMail(to, subject, body, fullname);
-//    }
 
 public void SendEmailOrderConfirmToCustomer(String to, String fullName, String productName,
                                             int quantity, long unitPrice, EOrderType paymentMethod) throws MessagingException {
@@ -143,5 +101,55 @@ public void SendEmailOrderConfirmToCustomer(String to, String fullName, String p
                 "</html>";
 
         sendNewMail(to, subject, body, fullName);
+    }
+
+
+    public void sendContactThankYouToCustomer(String to, String fullName) throws MessagingException {
+
+        String subject = "✅ Cảm ơn bạn đã liên hệ - Quang An Technology";
+
+        String body = "<html>" +
+                "<body>" +
+                "<h2 style=\"color: #0D6EFD;\">Cảm ơn bạn đã liên hệ với Quang An Technology!</h2>" +
+                "<p>Xin chào " + HtmlUtils.htmlEscape(fullName) + ",</p>" +
+                "<p>Chúng tôi đã nhận được thông tin liên hệ của bạn.</p>" +
+
+                "<p style=\"padding:10px; background:#e8f5e9; border-left:4px solid #2e7d32;\">" +
+                "📞 Nhân viên của chúng tôi sẽ sớm liên hệ lại với bạn trong thời gian sớm nhất." +
+                "</p>" +
+
+                "<p>Nếu cần hỗ trợ gấp, vui lòng trả lời email này hoặc liên hệ hotline của chúng tôi.</p>" +
+                "<p>Trân trọng,<br/>Quang An Technology</p>" +
+                "</body>" +
+                "</html>";
+
+        sendNewMail(to, subject, body, fullName);
+    }
+
+    // Email thông báo có khách liên hệ, gửi admin
+    public void sendContactNotifyToAdmin(ContactRequest req) throws MessagingException {
+
+        String email = (req.getEmail() == null || req.getEmail().isBlank())
+                ? "(không cung cấp)" : HtmlUtils.htmlEscape(req.getEmail());
+
+        String subject = "🔔 Khách hàng mới liên hệ: " + req.getFullName();
+
+        String body = "<html>" +
+                "<body>" +
+                "<h2 style=\"color: #FF6B35;\">Có khách hàng mới liên hệ!</h2>" +
+                "<p><b>*** Thông tin khách hàng:</b></p>" +
+                "<p>&nbsp;&nbsp;&nbsp;. Họ và tên: " + HtmlUtils.htmlEscape(req.getFullName()) + "</p>" +
+                "<p>&nbsp;&nbsp;&nbsp;. Số điện thoại: <b>" + HtmlUtils.htmlEscape(req.getPhone()) + "</b></p>" +
+                "<p>&nbsp;&nbsp;&nbsp;. Email: " + email + "</p>" +
+                "<p>&nbsp;&nbsp;&nbsp;. Chủ đề: " + HtmlUtils.htmlEscape(String.valueOf(req.getTopic())) + "</p>" +
+                "<p>&nbsp;&nbsp;&nbsp;. Nội dung:</p>" +
+                "<p style=\"padding:10px; background:#fff3e0; border-left:4px solid #e65100; white-space:pre-wrap;\">" +
+                HtmlUtils.htmlEscape(req.getContent()) +
+                "</p>" +
+                "<p>Vui lòng liên hệ lại khách hàng sớm nhất.</p>" +
+                "</body>" +
+                "</html>";
+
+        sendNewMail(ADMIN_EMAIL, subject, body, "Quang An Technology");
     }
 }

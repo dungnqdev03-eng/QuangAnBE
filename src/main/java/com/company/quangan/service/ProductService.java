@@ -1,5 +1,6 @@
 package com.company.quangan.service;
 
+import com.company.quangan.payload.dto.ContactRequest;
 import com.company.quangan.payload.entity.Product;
 import com.company.quangan.payload.request.create.CreateProductCategoryRequest;
 import com.company.quangan.payload.request.create.CreateProductRequest;
@@ -7,6 +8,7 @@ import com.company.quangan.payload.request.create.ProductImageDTO;
 import com.company.quangan.payload.request.update.UpdateProductRequest;
 import com.company.quangan.payload.response.ProductCategoryResponse;
 import com.company.quangan.payload.response.ProductResponse;
+import org.springframework.lang.Contract;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -27,5 +29,5 @@ public interface ProductService {
     void deleteProductImage(String imageCode) throws IOException;
     List<ProductImageDTO> uploadMultipleProductImages(MultipartFile[] multipartFiles, int productId) throws IOException;
     ProductImageDTO getProductImageByCode(String imageCode);
-
+    void handleContact(ContactRequest contactRequest);
 }

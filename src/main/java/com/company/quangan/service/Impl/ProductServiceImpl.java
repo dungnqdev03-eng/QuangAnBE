@@ -1,6 +1,7 @@
 package com.company.quangan.service.Impl;
 
 import com.company.quangan.config.CloudinaryConfig;
+import com.company.quangan.payload.dto.ContactRequest;
 import com.company.quangan.payload.entity.Product;
 import com.company.quangan.payload.entity.ProductCategory;
 import com.company.quangan.payload.entity.ProductImage;
@@ -20,6 +21,7 @@ import jakarta.transaction.Transactional;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -31,7 +33,7 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
-
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
@@ -54,6 +56,12 @@ public class ProductServiceImpl implements ProductService {
 
     @Autowired
     CloudinaryService cloudinaryService;
+
+    @Autowired
+    MailService mailService;
+
+    @Autowired
+    SmsService smsService;
 
 
 
@@ -289,6 +297,32 @@ public class ProductServiceImpl implements ProductService {
         productImageDTO.setImagePath(productImage.getPath());
 
         return productImageDTO;
+    }
+
+    @Override
+    public void handleContact(ContactRequest contactRequest) {
+        // 1. Luôn gửi thông báo cho admin (bọc try/catch để lỗi mail không làm hỏng request)
+        try {
+            mailService.sendContactNotifyToAdmin(contactRequest);
+        } catch (Exception e) {
+            log.error("Gửi mail admin thất bại", e);
+        }
+
+        // 2. Có SĐT (bắt buộc) -> gửi SMS cảm ơn
+        try {
+            smsService.sendThankYou(contactRequest.getPhone(), contactRequest.getFullName());
+        } catch (Exception e) {
+            log.error("Gửi SMS thất bại", e);
+        }
+
+        // 3. Có thêm email -> gửi email cảm ơn
+        if (contactRequest.getEmail() != null && !contactRequest.getEmail().isBlank()) {
+            try {
+                mailService.sendContactThankYouToCustomer(contactRequest.getEmail().trim(), contactRequest.getFullName());
+            } catch (Exception e) {
+                log.error("Gửi mail khách thất bại", e);
+            }
+        }
     }
 
     private String extractPublicId(String imageUrl) {
