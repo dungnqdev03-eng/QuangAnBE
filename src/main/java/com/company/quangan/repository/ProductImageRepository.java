@@ -16,6 +16,6 @@ public interface ProductImageRepository extends JpaRepository<ProductImage,Integ
     @Query("select pi from ProductImage pi WHERE pi.productImageCode = :code")
     Optional<ProductImage> getProductImageByImageCode(@Param("code") String code);
 
-    @Query(value = "SELECT COUNT(product_image_id) AS image_count FROM product_image where product_id = :id and status = 1 GROUP BY product_id",nativeQuery = true)
-    Integer countImageByProduct(int id);
+    @Query(value = "SELECT COUNT(product_image_id) FROM product_image WHERE product_id = :id AND status = true", nativeQuery = true)
+    Integer countImageByProduct(@Param("id") int id);
 }
